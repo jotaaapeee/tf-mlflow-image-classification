@@ -1,0 +1,27 @@
+# Core
+tensorflow==2.17.0
+numpy
+pandas
+matplotlib
+
+# PySpark
+pyspark==3.5.0
+
+# MLflow
+mlflow==2.14.1
+
+# Image processing
+opencv-python
+Pillow
+
+# Utilities
+scikit-learn
+tqdm
+pyyaml
+
+# FastAPI deployment (opcional pro final)
+fastapi
+uvicorn[standard]
+
+# For notebooks
+ipykernel
