@@ -1,32 +1,19 @@
 import tensorflow as tf
 
-def decode_tf_image(content):
-    img = tf.image.decode_jpeg(content, channels=3)
+def decode_image(path, label):
+    img = tf.io.read_file(path)
+    img = tf.image.decode_jpeg(img, channels=3)
     img = tf.image.resize(img, (128, 128))
-    return img
+    img = img / 255.0
+    return img, label
 
-def prepare_data(df):
-    pandas_df = df.toPandas()
 
-    images = []
-    labels = []
+def prepare_data(df, batch_size=32):
+    paths = df.select("path").rdd.flatMap(lambda x: x).collect()
+    labels = df.select("label").rdd.flatMap(lambda x: x).collect()
 
-    for _, row in pandas_df.iterrows():
-        img_tensor = decode_tf_image(row["content"])
-        images.append(img_tensor)
+    ds = tf.data.Dataset.from_tensor_slices((paths, labels))
+    ds = ds.map(decode_image, num_parallel_calls=tf.data.AUTOTUNE)
+    ds = ds.shuffle(100).batch(batch_size).prefetch(tf.data.AUTOTUNE)
 
-        label = 0 if "cat" in row["path"] else 1
-        labels.append(label)
-
-    images = tf.stack(images)
-    labels = tf.convert_to_tensor(labels)
-
-    dataset = tf.data.Dataset.from_tensor_slices((images, labels))
-    dataset = dataset.shuffle(500).batch(32)
-
-    train_size = int(0.8 * len(images))
-
-    train_ds = dataset.take(train_size)
-    test_ds = dataset.skip(train_size)
-
-    return train_ds, test_ds
+    return ds.take(int(0.8 * len(paths))), ds.skip(int(0.8 * len(paths)))

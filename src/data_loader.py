@@ -1,12 +1,15 @@
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import input_file_name
-import tensorflow as tf
+from pyspark.sql import Row
+import os
 
-def load_dataset(spark, path):
-    df = (
-        spark.read.format("binaryFile")
-        .option("pathGlobFilter", "*.jpg")
-        .option("recursiveFileLookup", "true")
-        .load(path)
-    )
-    return df
+def load_dataset(spark, base_path):
+    rows = []
+
+    for label_name, label_id in [("cat", 0), ("dog", 1)]:
+        folder = os.path.join(base_path, label_name)
+
+        for filename in os.listdir(folder):
+            if filename.lower().endswith((".jpg", ".jpeg", ".png")):
+                full_path = os.path.join(folder, filename)
+                rows.append(Row(path=full_path, label=label_id))
+
+    return spark.createDataFrame(rows)
