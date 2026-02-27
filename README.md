@@ -105,7 +105,7 @@ Run inference using a trained model:
 
 python3 src/predict.py 
 --run-id <MLFLOW_RUN_ID> 
---image data/sample/cat/cat.jpg
+--image data/sample/cat.jpg
 
 The model artifact is automatically loaded from MLflow.
 
